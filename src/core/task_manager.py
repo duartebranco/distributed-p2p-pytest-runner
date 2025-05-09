@@ -7,7 +7,6 @@ class TaskManager:
         self.start_times = {}
 
     def add_task(self, task_id, task):
-        print(f"[DEBUG] Adding task: {task_id} with task: {task}")
         self.tasks[task_id] = task
         self.start_times[task_id] = time.time()
 
@@ -44,4 +43,16 @@ class TaskManager:
             "pending": total - (passed + failed),
             "nota_final": nota_final,
             "elapsed_seconds": elapsed
+        }
+    
+    def add_multiple_results(self, task_id, results):
+        total = sum(r.get("total", 0) for r in results)
+        passed = sum(r.get("passed", 0) for r in results)
+        failed = sum(r.get("failed", 0) for r in results)
+        nota_final = sum(r.get("nota_final", 0) for r in results) // len(results) if results else 0
+        self.results[task_id] = {
+            "total": total,
+            "passed": passed,
+            "failed": failed,
+            "nota_final": nota_final,
         }
