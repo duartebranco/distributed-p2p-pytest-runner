@@ -45,6 +45,14 @@ class TaskManager:
             "elapsed_seconds": elapsed
         }
     
+    def get_all_evaluation(self):
+        evaluations = []
+        for result in self.results.keys():
+            evaluations.append(self.get_evaluation_status(result))
+        
+        return evaluations
+
+    
     def add_multiple_results(self, task_id, results):
         total = sum(r.get("total", 0) for r in results)
         passed = sum(r.get("passed", 0) for r in results)
