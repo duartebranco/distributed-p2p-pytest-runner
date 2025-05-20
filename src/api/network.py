@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify # type: ignore
 import json
 
 network_bp = Blueprint('network', __name__)

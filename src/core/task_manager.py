@@ -64,3 +64,30 @@ class TaskManager:
             "failed": failed,
             "nota_final": nota_final,
         }
+    
+    def get_all_stats(self):
+        """
+        Returns global stats across all evaluations:
+          failed, passed, number of projects, number of evaluations.
+        """
+        passed = sum(r.get("passed", 0) for r in self.results.values())
+        failed = sum(r.get("failed", 0) for r in self.results.values())
+        evaluations = len(self.results)
+        # count 1 project for a single-path task, or len(list) for multiple
+        projects = sum(
+            len(self.tasks[eid]) if isinstance(self.tasks[eid], list) else 1
+            for eid in self.results
+        )
+        return {
+            "failed": failed,
+            "passed": passed,
+            "projects": projects,
+            "evaluations": evaluations
+        }
+
+    def get_nodes_stats(self):
+        """
+        TODO: hook into your P2P layer to build per-node stats.
+        For now, returns an empty list.
+        """
+        return []
