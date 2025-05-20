@@ -1,17 +1,81 @@
 version: '3.8'
-
 services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  node1:
+    build: .
+    image: cd_node
+    environment:
+      - NODE_ADDRESS=node1:7000
     ports:
       - "7000:7000"
-    volumes:
-      - ./src:/app/src
     networks:
-      - distributed-network
+      - p2p-net
+    command: flask run --host=0.0.0.0 --port=7000
+
+  node2:
+    build: .
+    image: cd_node
+    environment:
+      - NODE_ADDRESS=node2:7001
+    ports:
+      - "7001:7001"
+    networks:
+      - p2p-net
+    command: flask run --host=0.0.0.0 --port=7001
+
+  node3:
+    build: .
+    image: cd_node
+    environment:
+      - NODE_ADDRESS=node3:7002
+    ports:
+      - "7002:7002"
+    networks:
+      - p2p-net
+    command: flask run --host=0.0.0.0 --port=7002
+
+  node4:
+    build: .
+    image: cd_node
+    environment:
+      - NODE_ADDRESS=node4:7003
+    ports:
+      - "7003:7003"
+    networks:
+      - p2p-net
+    command: flask run --host=0.0.0.0 --port=7003
+
+  node5:
+    build: .
+    image: cd_node
+    environment:
+      - NODE_ADDRESS=node5:7004
+    ports:
+      - "7004:7004"
+    networks:
+      - p2p-net
+    command: flask run --host=0.0.0.0 --port=7004
+
+  node6:
+    build: .
+    image: cd_node
+    environment:
+      - NODE_ADDRESS=node6:7005
+    ports:
+      - "7005:7005"
+    networks:
+      - p2p-net
+    command: flask run --host=0.0.0.0 --port=7005
+
+  node7:
+    build: .
+    image: cd_node
+    environment:
+      - NODE_ADDRESS=node7:7006
+    ports:
+      - "7006:7006"
+    networks:
+      - p2p-net
+    command: flask run --host=0.0.0.0 --port=7006
 
 networks:
-  distributed-network:
-    driver: bridge
+  p2p-net:

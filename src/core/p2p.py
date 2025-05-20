@@ -1,33 +1,23 @@
-from flask import jsonify, request
 import requests
+from flask import current_app
 
 class P2P:
     def __init__(self):
-        self.nodes = {}
+        self.peers = {}  # { "node2:7001": [] }
 
-    def add_node(self, address):
-        if address not in self.nodes:
-            self.nodes[address] = []
-
-    def remove_node(self, address):
-        if address in self.nodes:
-            del self.nodes[address]
-
-    def send_task(self, node_address, task):
-        try:
-            response = requests.post(f'http://{node_address}/task', json=task)
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Error sending task to {node_address}: {e}")
-            return None
-
-    def receive_results(self, node_address, results):
-        if node_address in self.nodes:
-            self.nodes[node_address].append(results)
-
+    def add_node(self, addr):
+        self.peers[addr] = []
+    def remove_node(self, addr):
+        self.peers.pop(addr, None)
     def get_network_info(self):
-        return self.nodes
+        return self.peers
 
-    def broadcast(self, task):
-        for node in self.nodes:
-            self.send_task(node, task)
+    def send_task(self, node_addr, payload):
+        url = f"http://{node_addr}/task"
+        try:
+            resp = requests.post(url, json=payload, timeout=30)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            current_app.logger.error(f"P2P.send_task → {url} failed: {e}")
+            return []

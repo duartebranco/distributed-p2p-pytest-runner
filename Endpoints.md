@@ -27,26 +27,3 @@ curl -X GET http://127.0.0.1:7000/evaluation
 #### /evaluation/{id} GET (get status of a specific evaluation)
 
 curl -X GET http://127.0.0.1:7000/evaluation/{id}
-
-#### /stats GET
-
-
-
-#### /network GET
-
-
-
-## NODE
-
-#### add
-curl -X POST http://localhost:7000/network \
-     -H "Content-Type: application/json" \
-     -d '{"address":"192.168.1.100:7001"}'
-
-#### list
-curl http://localhost:7000/network
-
-#### delete
-curl -X DELETE http://localhost:7000/network \
-     -H "Content-Type: application/json" \
-     -d '{"address":"192.168.1.100:7001"}'

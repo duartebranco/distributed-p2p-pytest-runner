@@ -1,41 +1,39 @@
-from flask import Blueprint, jsonify, request
-from core.p2p import P2P
+from flask import Blueprint, request, jsonify, current_app
+import requests
 
-p2p = P2P()
 network_bp = Blueprint('network', __name__)
 
 @network_bp.route('', methods=['GET'])
 def get_network():
-    """
-    GET /network
-    Returns the full P2P adjacency map.
-    """
-    return jsonify(p2p.get_network_info()), 200
+    return jsonify(current_app.p2p.get_network_info()), 200
 
 @network_bp.route('', methods=['POST'])
 def add_node():
-    """
-    POST /network  {"address": "ip:port"}
-    Adds a new peer to the mesh.
-    """
-    data = request.get_json() or {}
-    address = data.get('address')
-    if not address:
-        return jsonify({"error": "Missing 'address'"}), 400
+    data      = request.get_json()
+    addr      = data.get("address")
+    broadcast = data.get("broadcast", True)
 
-    p2p.add_node(address)
-    return jsonify({"status": "node added", "address": address}), 201
+    # 1) add the new peer locally
+    current_app.p2p.add_node(addr)
+
+    # 2) if this is the initial call, notify the peer to add us back
+    if broadcast:
+        self_addr = current_app.config['NODE_ADDRESS']
+        try:
+            requests.post(
+                f"http://{addr}/network",
+                json={"address": self_addr, "broadcast": False},
+                timeout=5
+            )
+            # also record the reverse link locally
+            current_app.p2p.peers[addr].append(self_addr)
+        except Exception:
+            current_app.logger.warning(f"Could not connect back to peer {addr}")
+
+    return jsonify({"message": "node added"}), 201
 
 @network_bp.route('', methods=['DELETE'])
 def remove_node():
-    """
-    DELETE /network  {"address": "ip:port"}
-    Removes a peer from the mesh.
-    """
-    data = request.get_json() or {}
-    address = data.get('address')
-    if not address:
-        return jsonify({"error": "Missing 'address'"}), 400
-
-    p2p.remove_node(address)
-    return jsonify({"status": "node removed", "address": address}), 200
+    addr = request.json.get("address")
+    current_app.p2p.remove_node(addr)
+    return jsonify({"message": "node removed"}), 200
