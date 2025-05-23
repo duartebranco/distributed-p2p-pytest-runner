@@ -4,6 +4,8 @@ from utils.zip_handler    import handle_zip_upload
 from utils.github_handler import handle_github_projects
 from core.task_manager    import TaskManager
 from utils.pytest_runner  import run_pytest_on_project
+import math
+from utils.pytest_runner  import find_test_modules
 
 evaluation_bp = Blueprint('evaluation', __name__)
 task_manager   = TaskManager()
@@ -20,24 +22,41 @@ def evaluation():
         task_manager.add_result(evaluation_id, result)
         return jsonify({"id": evaluation_id}), 201
 
-    # GitHub list (P2P or local)
+    # GitHub list
     elif request.is_json:
         data          = request.get_json()
         auth_token    = data.get("auth_token")
         projects      = data.get("projects", [])
         evaluation_id = str(uuid.uuid4())
 
-        # if peers exist, broadcast and aggregate
         nodes = list(current_app.p2p.get_network_info().keys())
         if nodes:
-            task_manager.add_task(evaluation_id, projects)
-            payload = {"auth_token": auth_token, "projects": projects}
+            # 1. Clona os projetos localmente para identificar módulos
+            cloned_paths = handle_github_projects(projects, auth_token)
+            all_modules = []
+            for proj_path in cloned_paths:
+                modules = find_test_modules(proj_path)
+                all_modules.extend([(proj_path, m) for m in modules])
+
+            # 2. Divide os módulos pelos nós
+            num_nodes = len(nodes)
+            chunk_size = math.ceil(len(all_modules) / num_nodes)
+            module_chunks = [all_modules[i:i+chunk_size] for i in range(0, len(all_modules), chunk_size)]
+
             all_results = []
-            for node in nodes:
+            for idx, node in enumerate(nodes):
+                chunk = module_chunks[idx] if idx < len(module_chunks) else []
+                print(f"Node {node} vai receber os módulos: {chunk}")
+                payload = {
+                    "auth_token": auth_token,
+                    "modules": [{"project_path": p, "module_path": m} for p, m in chunk]
+                }
                 res = current_app.p2p.send_task(node, payload)
                 if res:
                     all_results.extend(res)
+
             task_manager.add_multiple_results(evaluation_id, all_results)
+            task_manager.add_task(evaluation_id, [m[1] for m in all_modules])
             return jsonify({"id": evaluation_id}), 201
 
         # fallback: local run
