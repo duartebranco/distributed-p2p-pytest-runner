@@ -58,11 +58,33 @@ class TaskManager:
         passed = sum(r.get("passed", 0) for r in results)
         failed = sum(r.get("failed", 0) for r in results)
         nota_final = sum(r.get("nota_final", 0) for r in results) // len(results) if results else 0
+
+        # Agregação por projeto e por módulo
+        per_project = {}
+        per_module = {}
+        for r in results:
+            proj = r.get("project_path")
+            mod = r.get("module_path")
+            if proj:
+                if proj not in per_project:
+                    per_project[proj] = {"total": 0, "passed": 0, "failed": 0}
+                per_project[proj]["total"] += r.get("total", 0)
+                per_project[proj]["passed"] += r.get("passed", 0)
+                per_project[proj]["failed"] += r.get("failed", 0)
+            if mod:
+                per_module[mod] = {
+                    "total": r.get("total", 0),
+                    "passed": r.get("passed", 0),
+                    "failed": r.get("failed", 0)
+                }
+
         self.results[task_id] = {
             "total": total,
             "passed": passed,
             "failed": failed,
             "nota_final": nota_final,
+            "per_project": per_project,
+            "per_module": per_module,
         }
     
     def get_all_stats(self):

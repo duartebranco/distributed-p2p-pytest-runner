@@ -1,6 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
 from utils.zip_handler import handle_zip_upload
-from utils.github_handler import handle_github_projects
+import base64
+import os
+import tempfile
+from utils.zip_handler import extract_zip
 from utils.pytest_runner import run_pytest_on_project
 
 worker_bp = Blueprint('worker', __name__)
@@ -12,6 +15,19 @@ def receive_task():
         print(f"Vou correr os módulos: {request.json['modules']}")
         results = []
         for mod in request.json["modules"]:
-            res = run_pytest_on_project(mod["project_path"], mod["module_path"])
+            project_zip = mod.get("project_zip")
+            if project_zip:
+                temp_dir = tempfile.mkdtemp()
+                zip_path = os.path.join(temp_dir, "project.zip")
+                with open(zip_path, "wb") as f:
+                    f.write(base64.b64decode(project_zip))
+                extract_zip(zip_path, temp_dir)
+                project_path = temp_dir
+            else:
+                project_path = mod["project_path"]
+            # Reconstrói o caminho absoluto do módulo
+            module_rel_path = mod["module_path"]
+            module_abs_path = os.path.join(project_path, module_rel_path)
+            res = run_pytest_on_project(project_path, module_abs_path)
             results.append(res)
         return jsonify(results), 200

@@ -50,3 +50,19 @@ class P2P:
             except Exception:
                 network[addr] = []
         return network
+    
+    def send_task(self, node, payload):
+        """
+        Envia uma tarefa para o node especificado via HTTP.
+        """
+        try:
+            url = f"http://{node}/task"
+            resp = requests.post(url, json=payload, timeout=10)
+            if resp.status_code == 200:
+                return resp.json()
+            else:
+                print(f"Erro ao enviar tarefa para {node}: {resp.status_code} {resp.text}")
+                return None
+        except Exception as e:
+            print(f"Exceção ao enviar tarefa para {node}: {e}")
+            return None

@@ -5,6 +5,8 @@ from utils.github_handler import handle_github_projects
 from core.task_manager    import TaskManager
 from utils.pytest_runner  import run_pytest_on_project
 import math
+import os
+from utils.zip_handler import zip_project_folder
 from utils.pytest_runner  import find_test_modules
 
 evaluation_bp = Blueprint('evaluation', __name__)
@@ -36,7 +38,10 @@ def evaluation():
             all_modules = []
             for proj_path in cloned_paths:
                 modules = find_test_modules(proj_path)
-                all_modules.extend([(proj_path, m) for m in modules])
+                # Em vez de guardar o caminho absoluto, guarda o relativo ao projeto
+                all_modules.extend([
+                    (proj_path, os.path.relpath(m, proj_path)) for m in modules
+                ])
 
             # 2. Divide os módulos pelos nós
             num_nodes = len(nodes)
@@ -46,10 +51,17 @@ def evaluation():
             all_results = []
             for idx, node in enumerate(nodes):
                 chunk = module_chunks[idx] if idx < len(module_chunks) else []
-                print(f"Node {node} vai receber os módulos: {chunk}")
+                modules_payload = []
+                for p, m in chunk:
+                    zipped = zip_project_folder(p)
+                    modules_payload.append({
+                        "project_path": p,
+                        "module_path": m,
+                        "project_zip": zipped
+                    })
                 payload = {
                     "auth_token": auth_token,
-                    "modules": [{"project_path": p, "module_path": m} for p, m in chunk]
+                    "modules": modules_payload
                 }
                 res = current_app.p2p.send_task(node, payload)
                 if res:

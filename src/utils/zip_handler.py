@@ -1,6 +1,8 @@
 import zipfile
 import tempfile
 import os
+import base64
+import io
 
 def handle_zip_upload(zip_file):
     temp_dir = tempfile.mkdtemp()
@@ -25,3 +27,14 @@ def prepare_projects(zip_file_path, extract_to):
 def validate_zip_file(zip_file_path):
     if not zipfile.is_zipfile(zip_file_path):
         raise ValueError("The provided file is not a valid ZIP file.")
+    
+def zip_project_folder(project_path):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(project_path):
+            for file in files:
+                abs_path = os.path.join(root, file)
+                rel_path = os.path.relpath(abs_path, project_path)
+                zipf.write(abs_path, rel_path)
+    buf.seek(0)
+    return base64.b64encode(buf.read()).decode('utf-8')

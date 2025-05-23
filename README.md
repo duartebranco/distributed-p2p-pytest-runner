@@ -1,5 +1,16 @@
 # CD PROJECT
 
+## Rebuild (important after changes)
+
+``` bash
+docker-compose down -v --rmi all
+docker-compose build --no-cache
+docker-compose up -d
+
+# one liner:
+docker-compose down -v --rmi all && docker-compose build --no-cache && docker-compose up -d
+```
+
 ## Usage
 
 
