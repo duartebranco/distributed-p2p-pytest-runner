@@ -82,7 +82,7 @@ def evaluation():
 
 @evaluation_bp.route('', methods=['GET'])
 def list_evaluations():
-    return jsonify({"evaluations": task_manager.get_all_evaluation()}), 200
+    return jsonify({"evaluations": task_manager.get_all_evaluation_ids()}), 200
 
 @evaluation_bp.route('<id>', methods=['GET'])
 def get_evaluation_status(id):

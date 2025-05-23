@@ -14,13 +14,13 @@ curl -X POST http://127.0.0.1:7000/evaluation \
     ]
  }'
 
-#### /evaluation POST ZIP (should return id)
+#### /evaluation POST ZIP (should return id) (not done yet)
 
 curl -X POST http://127.0.0.1:7000/evaluation \
  -H 'Content-Type: multipart/form-data' \
  -F "file=@/home/duarte/all_projects.zip"
 
-#### /evaluation GET (list all evaluations) ***(not completely right)
+#### /evaluation GET (list all evaluations)
 
 curl -X GET http://127.0.0.1:7000/evaluation
 

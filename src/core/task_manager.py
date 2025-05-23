@@ -52,6 +52,8 @@ class TaskManager:
         
         return evaluations
 
+    def get_all_evaluation_ids(self):
+        return list(self.results.keys())
     
     def add_multiple_results(self, task_id, results):
         total = sum(r.get("total", 0) for r in results)
