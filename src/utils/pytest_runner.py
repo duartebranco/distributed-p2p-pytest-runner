@@ -24,6 +24,14 @@ def print_dir_tree(start_path):
         indent = ' ' * 2 * level
         print(f"{indent}{os.path.basename(root)}/")
 
+def find_projects(base_path):
+    # Ao correr zip tentar encontrar os projetos através to /tests
+    projs = []
+    for root, dirs, _ in os.walk(base_path):
+        if 'tests' in dirs:
+            projs.append(root)
+    return projs
+
 def run_pytest_on_project(project_path, module_path=None):
     result = {
         "total": 0,

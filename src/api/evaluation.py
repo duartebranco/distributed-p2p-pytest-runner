@@ -3,7 +3,7 @@ import uuid
 from utils.zip_handler    import handle_zip_upload
 from utils.github_handler import handle_github_projects
 from core.task_manager    import TaskManager
-from utils.pytest_runner  import run_pytest_on_project
+from utils.pytest_runner  import run_pytest_on_project, find_projects
 import math
 import requests
 import os
@@ -22,8 +22,13 @@ def evaluation():
         evaluation_id = str(uuid.uuid4())
         extracted     = handle_zip_upload(zip_file)
         task_manager.add_task(evaluation_id, extracted)
-        result = run_pytest_on_project(extracted)
-        task_manager.add_result(evaluation_id, result)
+
+        projects = find_projects(extracted)
+        
+        all_results = [run_pytest_on_project(p) for p in projects]
+
+        task_manager.add_multiple_results(evaluation_id, all_results)
+
         return jsonify({"id": evaluation_id}), 201
 
     # GitHub list
