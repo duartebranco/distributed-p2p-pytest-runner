@@ -1,10 +1,17 @@
 import time
+import os
 
 class TaskManager:
     def __init__(self):
         self.tasks = {}
         self.results = {}
         self.start_times = {}
+
+    def set_elapsed_seconds(self, task_id, elapsed):
+        print(f"[DEBUG][set_elapsed_seconds] Setting elapsed_seconds={elapsed} for task_id={task_id}")
+        if task_id not in self.results:
+            self.results[task_id] = {}
+        self.results[task_id]["elapsed_seconds"] = elapsed
 
     def add_task(self, task_id, task):
         self.tasks[task_id] = task
@@ -29,7 +36,9 @@ class TaskManager:
         per_project = result.get("per_project", {})
         per_module = result.get("per_module", {})
         nota_final = result.get("nota_final", 0)
-        elapsed = round(time.time() - start_time, 2) if start_time else None
+        elapsed = result.get("elapsed_seconds")
+        if elapsed is None and start_time:
+            elapsed = round(time.time() - start_time, 2)
 
         return {
             "percent_passed": (passed / total * 100) if total else 0,
@@ -65,7 +74,7 @@ class TaskManager:
         per_project = {}
         per_module = {}
         for r in results:
-            proj = r.get("project_path")
+            proj = r.get("project_id") or r.get("project_path")
             mod = r.get("module_path")
             if proj:
                 if proj not in per_project:
@@ -73,12 +82,17 @@ class TaskManager:
                 per_project[proj]["total"] += r.get("total", 0)
                 per_project[proj]["passed"] += r.get("passed", 0)
                 per_project[proj]["failed"] += r.get("failed", 0)
-            if mod:
-                per_module[mod] = {
+            if proj and mod:
+                mod_key = f"{proj}/{os.path.basename(mod)}"
+                per_module[mod_key] = {
                     "total": r.get("total", 0),
                     "passed": r.get("passed", 0),
                     "failed": r.get("failed", 0)
                 }
+
+        prev = self.results.get(task_id, {})
+        elapsed = prev.get("elapsed_seconds")
+        print(f"[DEBUG][add_multiple_results] task_id={task_id} | prev_elapsed={elapsed}")
 
         self.results[task_id] = {
             "total": total,
@@ -88,7 +102,12 @@ class TaskManager:
             "per_project": per_project,
             "per_module": per_module,
         }
-    
+        if elapsed is not None:
+            print(f"[DEBUG][add_multiple_results] Preserving elapsed_seconds={elapsed} for task_id={task_id}")
+            self.results[task_id]["elapsed_seconds"] = elapsed
+        else:
+            print(f"[DEBUG][add_multiple_results] No elapsed_seconds to preserve for task_id={task_id}")
+
     def get_all_stats(self):
         """
         Returns global stats across all evaluations:

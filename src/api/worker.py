@@ -10,12 +10,14 @@ worker_bp = Blueprint('worker', __name__)
 
 @worker_bp.route('/task', methods=['POST'])
 def receive_task():
-    current_app.logger.info(f"WORKER got /task payload: {request.json}")
     if "modules" in request.json:
-        print(f"Vou correr os módulos: {request.json['modules']}")
+        print("Vou correr os módulos:")
+        for mod in request.json["modules"]:
+            print(f"  - module_path: {mod.get('module_path')}, project_path: {mod.get('project_path')}")
         results = []
         for mod in request.json["modules"]:
             project_zip = mod.get("project_zip")
+            project_id = mod.get("project_id")
             if project_zip:
                 temp_dir = tempfile.mkdtemp()
                 zip_path = os.path.join(temp_dir, "project.zip")
@@ -29,5 +31,6 @@ def receive_task():
             module_rel_path = mod["module_path"]
             module_abs_path = os.path.join(project_path, module_rel_path)
             res = run_pytest_on_project(project_path, module_abs_path)
+            res["project_id"] = project_id
             results.append(res)
         return jsonify(results), 200

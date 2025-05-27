@@ -57,12 +57,14 @@ class P2P:
         """
         try:
             url = f"http://{node}/task"
-            resp = requests.post(url, json=payload, timeout=10)
+            print(f"[DEBUG][P2P] A enviar tarefa para {url} com payload (tamanho): {len(str(payload))}")
+            resp = requests.post(url, json=payload, timeout=100)
+            print(f"[DEBUG][P2P] Resposta de {url}: {resp.status_code} {resp.text}")
             if resp.status_code == 200:
                 return resp.json()
             else:
                 print(f"Erro ao enviar tarefa para {node}: {resp.status_code} {resp.text}")
                 return None
         except Exception as e:
-            print(f"Exceção ao enviar tarefa para {node}: {e}")
+            print(f"[EXCEPTION][P2P] Exceção ao enviar tarefa para {node}: {e}")
             return None

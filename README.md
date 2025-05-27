@@ -9,10 +9,12 @@ docker-compose up -d
 
 # one liner:
 docker-compose down -v --rmi all && docker-compose build --no-cache && docker-compose up -d
+
+# other one liner
+docker-compose down -v --rmi all && docker-compose up -d
 ```
 
 ## Usage
-
 
 
 
@@ -23,7 +25,7 @@ The project is organized as follows:
 ```
 distributed-testing-system
 ├── src
-│   ├── api                # Contains the API endpoints for evaluation, stats, and network
+│   ├── api                # Contains the API endpoints for evaluation, stats, and network and new ones
 │   ├── core               # Core functionality including node management and task distribution
 │   └── utils              # Utility functions for handling ZIP files and GitHub interactions
 ├── Dockerfile             # Dockerfile for building the application image

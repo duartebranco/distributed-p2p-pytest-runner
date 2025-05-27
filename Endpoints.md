@@ -8,8 +8,6 @@ curl -X POST http://127.0.0.1:7000/evaluation \
     "auth_token":"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",
     "projects":[
         "https://github.com/detiuaveiro/cd2025_guiao1-duartebranco",
-        "https://github.com/detiuaveiro/cd2025_chord-120603_119253",
-        "https://github.com/detiuaveiro/cd2025-guiao-3-120603_119253",
         "https://github.com/detiuaveiro/cd2025-guiao-4-120603_119253"
     ]
  }'
@@ -24,6 +22,14 @@ curl -X POST http://127.0.0.1:7000/evaluation \
 
 curl -X GET http://127.0.0.1:7000/evaluation
 
-#### /evaluation/{id} GET (get status of a specific evaluation)
+#### /evaluation/{id} GET (get status of a specific evaluation) (not done yet)
 
 curl -X GET http://127.0.0.1:7000/evaluation/{id}
+
+#### /stats GET (not done yet)
+
+curl -X GET http://127.0.0.1:7000/stats
+
+#### /network GET (p2p network info)
+
+curl -X GET http://127.0.0.1:7000/network
