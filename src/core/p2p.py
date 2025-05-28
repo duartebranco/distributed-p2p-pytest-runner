@@ -52,19 +52,23 @@ class P2P:
         return network
     
     def send_task(self, node, payload):
-        """
-        Envia uma tarefa para o node especificado via HTTP.
-        """
+        # POST /task -> ACK only
         try:
             url = f"http://{node}/task"
-            print(f"[DEBUG][P2P] A enviar tarefa para {url} com payload (tamanho): {len(str(payload))}")
-            resp = requests.post(url, json=payload, timeout=100)
-            print(f"[DEBUG][P2P] Resposta de {url}: {resp.status_code} {resp.text}")
+            resp = requests.post(url, json=payload, timeout=5)
+            if resp.status_code == 200:
+                return resp.json()   # {"status":"ack"}
+        except Exception as e:
+            print(f"[P2P send_task] {e}")
+        return None
+    
+    def get_results(self, node, evaluation_id):
+        # GET /task/results/<evaluation_id> -> blocks until done
+        try:
+            url = f"http://{node}/task/results/{evaluation_id}"
+            resp = requests.get(url, timeout=None)
             if resp.status_code == 200:
                 return resp.json()
-            else:
-                print(f"Erro ao enviar tarefa para {node}: {resp.status_code} {resp.text}")
-                return None
         except Exception as e:
-            print(f"[EXCEPTION][P2P] Exceção ao enviar tarefa para {node}: {e}")
-            return None
+            print(f"[P2P get_results] {e}")
+        return None

@@ -8,6 +8,7 @@ import math
 import requests
 import os
 import time
+from random import shuffle
 from utils.zip_handler import zip_project_folder
 from utils.pytest_runner  import find_test_modules
 
@@ -37,52 +38,59 @@ def evaluation():
         auth_token    = data.get("auth_token")
         projects      = data.get("projects", [])
         evaluation_id = str(uuid.uuid4())
-        task_manager.start_times[evaluation_id] = time.time()
 
         nodes = list(current_app.p2p.get_network_info().keys())
         if nodes:
-            # 1. Clona os projetos localmente para identificar módulos
-            cloned_paths = handle_github_projects(projects, auth_token)
-            all_modules = []
-            for proj_path in cloned_paths:
-                project_id = os.path.basename(proj_path)  # Nome da pasta do projeto
-                modules = find_test_modules(proj_path)
-                all_modules.extend([
-                    (proj_path, os.path.relpath(m, proj_path), project_id) for m in modules
-                ])
+            cloned = handle_github_projects(projects, auth_token)
+            all_mods = []
+            for p in cloned:
+                pid = os.path.basename(p)
+                for m in find_test_modules(p):
+                    all_mods.append((p, os.path.relpath(m, p), pid))
 
-            # 2. Divide os módulos pelos nós
-            num_nodes = len(nodes)
-            chunk_size = math.ceil(len(all_modules) / num_nodes)
-            module_chunks = [all_modules[i:i+chunk_size] for i in range(0, len(all_modules), chunk_size)]
+            # split into per-node chunks
+            size   = math.ceil(len(all_mods) / len(nodes))
+            chunks = [all_mods[i:i+size] for i in range(0, len(all_mods), size)]
 
-            all_results = []
+            # record dispatch start time just before first POST /task
+            t0 = time.time()
+
+            # PHASE 1: fire‐and‐forget send + ACK
             for idx, node in enumerate(nodes):
-                chunk = module_chunks[idx] if idx < len(module_chunks) else []
-                print(f"[DEBUG][EVAL] Vou tentar enviar chunk {idx} para {node} ({len(chunk)} módulos)")
-                modules_payload = []
-                for p, m, project_id in chunk:
-                    zipped = zip_project_folder(p)
-                    modules_payload.append({
-                        "project_path": p,
-                        "module_path": m,
-                        "project_zip": zipped,
-                        "project_id": project_id
-                    })
+                chunk = chunks[idx] if idx < len(chunks) else []
                 payload = {
-                    "auth_token": auth_token,
-                    "modules": modules_payload
+                    "evaluation_id": evaluation_id,
+                    "auth_token":    auth_token,
+                    "modules": [
+                        {
+                            "project_path": p,
+                            "module_path":  m,
+                            "project_zip":  zip_project_folder(p),
+                            "project_id":   pid
+                        }
+                        for p, m, pid in chunk
+                    ]
                 }
-                res = current_app.p2p.send_task(node, payload)
-                print(f"[DEBUG][EVAL] Resultado de {node}: {res}")
+                ack = current_app.p2p.send_task(node, payload)
+                print(f"[DEBUG][EVAL] ACK from {node}: {ack}")
+
+            # PHASE 2: iterative collect (blocks only here)
+            shuffle(nodes)
+            all_results = []
+            for node in nodes:
+                print(f"[DEBUG][EVAL] fetching results from {node}")
+                res = current_app.p2p.get_results(node, evaluation_id)
                 if res:
                     all_results.extend(res)
 
+            # aggregate
             task_manager.add_multiple_results(evaluation_id, all_results)
-            task_manager.add_task(evaluation_id, [m[1] for m in all_modules])
 
-            elapsed = round(time.time() - task_manager.start_times[evaluation_id], 2)
-            print(f"[DEBUG][EVAL] Syncing elapsed_seconds={elapsed} to other nodes")
+            # compute real elapsed
+            elapsed = round(time.time() - t0, 2)
+            task_manager.set_elapsed_seconds(evaluation_id, elapsed)
+
+            # sync elapsed+results to peers
             for node in nodes:
                 if node != current_app.p2p.node_address:
                     try:
@@ -91,8 +99,9 @@ def evaluation():
                             json={"results": all_results, "elapsed_seconds": elapsed},
                             timeout=5
                         )
-                    except Exception as e:
-                        print(f"[WARN] Falha ao sincronizar resultado com {node}: {e}")
+                    except:
+                        pass
+
             return jsonify({"id": evaluation_id}), 201
 
         # fallback: local run
