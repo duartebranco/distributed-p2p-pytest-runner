@@ -3,86 +3,20 @@ services:
   node1:
     build: .
     image: cd_node
+    network_mode: host
     environment:
-      - NODE_ADDRESS=node1:7000
-      - SEED_NODES=node2:7001
-    ports:
-      - "7000:7000"
-    networks:
-      - p2p-net
-    command: flask run --host=0.0.0.0 --port=7000
+      - PORT=7000
 
   node2:
     build: .
     image: cd_node
+    network_mode: host
     environment:
-      - NODE_ADDRESS=node2:7001
-      - SEED_NODES=node1:7000
-    ports:
-      - "7001:7001"
-    networks:
-      - p2p-net
-    command: flask run --host=0.0.0.0 --port=7001
+      - PORT=7001
 
   node3:
     build: .
     image: cd_node
+    network_mode: host
     environment:
-      - NODE_ADDRESS=node3:7002
-      - SEED_NODES=node1:7000
-    ports:
-      - "7002:7002"
-    networks:
-      - p2p-net
-    command: flask run --host=0.0.0.0 --port=7002
-
-  node4:
-    build: .
-    image: cd_node
-    environment:
-      - NODE_ADDRESS=node4:7003
-      - SEED_NODES=node1:7000
-    ports:
-      - "7003:7003"
-    networks:
-      - p2p-net
-    command: flask run --host=0.0.0.0 --port=7003
-
-  node5:
-    build: .
-    image: cd_node
-    environment:
-      - NODE_ADDRESS=node5:7004
-      - SEED_NODES=node1:7000
-    ports:
-      - "7004:7004"
-    networks:
-      - p2p-net
-    command: flask run --host=0.0.0.0 --port=7004
-
-  node6:
-    build: .
-    image: cd_node
-    environment:
-      - NODE_ADDRESS=node6:7005
-      - SEED_NODES=node1:7000
-    ports:
-      - "7005:7005"
-    networks:
-      - p2p-net
-    command: flask run --host=0.0.0.0 --port=7005
-
-  node7:
-    build: .
-    image: cd_node
-    environment:
-      - NODE_ADDRESS=node7:7006
-      - SEED_NODES=node1:7000
-    ports:
-      - "7006:7006"
-    networks:
-      - p2p-net
-    command: flask run --host=0.0.0.0 --port=7006
-
-networks:
-  p2p-net:
+      - PORT=7002

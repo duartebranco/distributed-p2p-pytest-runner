@@ -21,7 +21,7 @@ def _process_stored_modules(evaluation_id):
         results.append(r)
     worker_results[evaluation_id] = results
 
-@worker_bp.route('/task', methods=['POST'])
+@worker_bp.route('', methods=['POST'])
 def receive_task():
     data   = request.json
     eval_id= data.get("evaluation_id")
@@ -55,7 +55,7 @@ def receive_task():
 
     return ack
 
-@worker_bp.route('/task/results/<evaluation_id>', methods=['GET'])
+@worker_bp.route('/results/<evaluation_id>', methods=['GET'])
 def fetch_results(evaluation_id):
     # block here only when client asks for results
     while evaluation_id not in worker_results:

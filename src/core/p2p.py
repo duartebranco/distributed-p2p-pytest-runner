@@ -39,7 +39,7 @@ class P2P:
     def get_network_info(self):
         # Só devolve os peers conhecidos por cada node
         network = {}
-        for addr in self.connected_nodes:
+        for addr in list(self.connected_nodes):
             try:
                 if addr == self.node_address:
                     peers = list(self.connected_nodes - {self.node_address})
@@ -55,7 +55,7 @@ class P2P:
         # POST /task -> ACK only
         try:
             url = f"http://{node}/task"
-            resp = requests.post(url, json=payload, timeout=5)
+            resp = requests.post(url, json=payload, timeout=10)
             if resp.status_code == 200:
                 return resp.json()   # {"status":"ack"}
         except Exception as e:

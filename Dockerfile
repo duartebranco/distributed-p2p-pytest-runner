@@ -18,8 +18,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # copy application code
 COPY src/ src/
 
+# copia o script que detecta o IP e inicia o Flask
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # expose default ports (overridden by compose)
 EXPOSE 7000 7001
 
-# default entrypoint, compose services override --port
-CMD ["flask", "run", "--host=0.0.0.0"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

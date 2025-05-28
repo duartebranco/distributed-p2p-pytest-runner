@@ -8,6 +8,7 @@ import math
 import requests
 import os
 import time
+from random import randint
 from random import shuffle
 from utils.zip_handler import zip_project_folder
 from utils.pytest_runner  import find_test_modules
@@ -77,11 +78,52 @@ def evaluation():
             # PHASE 2: iterative collect (blocks only here)
             shuffle(nodes)
             all_results = []
-            for node in nodes:
-                print(f"[DEBUG][EVAL] fetching results from {node}")
-                res = current_app.p2p.get_results(node, evaluation_id)
-                if res:
-                    all_results.extend(res)
+            # mapeia cada nó ao seu chunk inicial
+            pending = {node: chunks[idx] for idx, node in enumerate(nodes) if idx < len(chunks)}
+            alive = nodes.copy()
+
+            while pending and alive:
+                for node in list(alive):
+                    chunk = pending.get(node)
+                    if not chunk:
+                        alive.remove(node)
+                        continue
+
+                    try:
+                        print(f"[DEBUG][EVAL] fetching results from {node}")
+                        res = current_app.p2p.get_results(node, evaluation_id)  # P2P.get_results em src/core/p2p.py
+                    except Exception as e:
+                        print(f"[ERROR][EVAL] node {node} unreachable: {e}")
+                        res = None
+
+                    if res:
+                        all_results.extend(res)
+                        pending.pop(node, None)
+                    else:
+                        # nó falhou, remove e reatribui o chunk
+                        if not res:
+                            # nó 'node' falhou
+                            alive.remove(node)
+                            # escolhe só 1 target para este chunk
+                            new_node = alive[randint(0, len(alive)-1)]
+                            # reatribui pending: passa o chunk ao novo nó
+                            pending[new_node] = chunk
+                            pending.pop(node, None)
+                            # e dispara apenas 1 send
+                            ack = current_app.p2p.send_task(new_node, {
+                                "evaluation_id": evaluation_id,
+                                "auth_token":    auth_token,
+                                "modules": [
+                                    {
+                                        "project_path": p,
+                                        "module_path":  m,
+                                        "project_zip":  zip_project_folder(p),
+                                        "project_id":   pid
+                                    }
+                                    for p, m, pid in chunk
+                                ]
+                            })
+                            print(f"[DEBUG][EVAL] reassigned from {node} → {new_node}, ACK={ack}")
 
             # aggregate
             task_manager.add_multiple_results(evaluation_id, all_results)
