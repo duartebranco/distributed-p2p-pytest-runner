@@ -33,5 +33,3 @@ curl -X GET http://127.0.0.1:7000/stats
 #### /network GET (p2p network info)
 
 curl -X GET http://127.0.0.1:7000/network
-
-for i in {1..7}; do docker-compose logs node$i > node${i}_logs.txt; done

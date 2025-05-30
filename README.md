@@ -32,6 +32,25 @@ Simulate the network locally without docker, using the `main.py`:
 - Start the 'server' with only one node
     ```sh
     export PORT=7000
+    export NODE_ADDRESS=192.168.0.2:7000
+    export SEED_NODES=192.168.0.2:7000
+    python3 src/main.py run --host 192.168.0.2 --port 7000
+    ```
+- Add a new node (or multiple, change only the 7001 port +1, +1, ...)
+    ```sh
+    export PORT=7001
+    export NODE_ADDRESS=192.168.0.7:7001
+    export SEED_NODES=192.168.0.2:7000
+    python3 src/main.py run --host 192.168.0.7 --port 7001
+    ```
+
+`192.168.0.2` and `192.168.0.7` should be the two machine's real private network IPs
+
+Now if you only want to use the same machine:
+
+- Start the 'server' with only one node
+    ```sh
+    export PORT=7000
     export NODE_ADDRESS=127.0.0.1:7000
     export SEED_NODES=127.0.0.1:7000
     python3 src/main.py run --host 127.0.0.1 --port 7000
