@@ -13,6 +13,26 @@ class P2P:
         self.connected_nodes.add(self.node_address)
         self.auto_join()
         threading.Thread(target=self.gossip_loop, daemon=True).start()
+        self.node_stats = {
+            "address": self.node_address,
+            "failed": 0,
+            "passed": 0,
+            "projects": 0,
+            "modules": 0,
+            "evaluations": []
+        }
+
+    def update_stats(self, evaluation_id, results):
+        stats = self.node_stats
+        for result in results:
+            stats["failed"] += result.get("failed", 0)
+            stats["passed"] += result.get("passed", 0)
+            if result.get("project_id"):
+                stats["projects"] += 1
+            stats["modules"] += 1  
+        
+        if evaluation_id not in stats["evaluations"]:
+            stats["evaluations"].append(evaluation_id)
 
     def auto_join(self):
         for seed in self.known_seeds:

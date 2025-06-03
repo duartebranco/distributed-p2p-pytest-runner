@@ -14,3 +14,9 @@ def get_stats():
     }
     
     return jsonify(response)
+
+@stats_bp.route('/node', methods=['GET'])
+def get_node_stats():
+    """Get statistics for just this node"""
+    from flask import current_app
+    return jsonify(current_app.p2p.node_stats)

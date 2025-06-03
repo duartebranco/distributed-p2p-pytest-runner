@@ -1,5 +1,6 @@
 import time
 import os
+from flask import current_app
 
 class TaskManager:
     def __init__(self):
@@ -129,8 +130,37 @@ class TaskManager:
         }
 
     def get_nodes_stats(self):
-        """
-        TODO: hook into your P2P layer to build per-node stats.
-        For now, returns an empty list.
-        """
-        return []
+        """Returns statistics from all nodes in the network"""
+        try:
+            p2p = current_app.p2p
+        except RuntimeError:
+            # Handle case when outside application context
+            print("[WARNING] Accessing p2p outside application context")
+            return []
+            
+        nodes_info = []
+        for node in p2p.connected_nodes:
+            try:
+                if node == p2p.node_address:
+                    # Get local node stats
+                    stats = p2p.node_stats
+                else:
+                    # Get remote node stats
+                    resp = requests.get(f"http://{node}/stats/node", timeout=1)
+                    if resp.status_code == 200:
+                        stats = resp.json()
+                    else:
+                        continue
+                nodes_info.append({
+                    "address": node,
+                    "failed": stats.get("failed", 0),
+                    "passed": stats.get("passed", 0),
+                    "projects": stats.get("projects", 0),
+                    "modules": stats.get("modules", 0),
+                    "evaluations": stats.get("evaluations", [])
+                })
+            except Exception as e:
+                print(f"Failed to get stats from node {node}: {e}")
+                continue
+        
+        return nodes_info
