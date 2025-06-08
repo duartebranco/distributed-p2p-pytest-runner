@@ -5,7 +5,7 @@ services:
     image: cd_node
     environment:
       - PORT=7000
-      - SEED_NODES=${HOST_IP}:7000
+      - SEED_NODES=${HOST_IP}:7000${EXTRA_SEEDS:+,${EXTRA_SEEDS}}
       - HOST_IP=${HOST_IP}
     ports:
       - "7000:7000"
@@ -15,7 +15,7 @@ services:
     image: cd_node
     environment:
       - PORT=7001
-      - SEED_NODES=${HOST_IP}:7000
+      - SEED_NODES=${HOST_IP}:7000${EXTRA_SEEDS:+,${EXTRA_SEEDS}}
       - HOST_IP=${HOST_IP}
     ports:
       - "7001:7001"
@@ -25,7 +25,7 @@ services:
     image: cd_node
     environment:
       - PORT=7002
-      - SEED_NODES=${HOST_IP}:7000
+      - SEED_NODES=${HOST_IP}:7000${EXTRA_SEEDS:+,${EXTRA_SEEDS}}
       - HOST_IP=${HOST_IP}
     ports:
       - "7002:7002"
