@@ -1,6 +1,7 @@
 import time
 import os
 from flask import current_app
+import requests
 
 class TaskManager:
     def __init__(self):
@@ -19,6 +20,9 @@ class TaskManager:
         self.start_times[task_id] = time.time()
 
     def add_result(self, task_id, result):
+        print(f"[DEBUG][add_result] task_id={task_id} | result keys={list(result.keys())}")
+        if 'executed_by' in result:
+            print(f"[DEBUG][add_result] executed_by={result['executed_by']}")
         self.results[task_id] = result
 
     def get_evaluation_status(self, evaluation_id):
@@ -40,6 +44,11 @@ class TaskManager:
         elapsed = result.get("elapsed_seconds")
         if elapsed is None and start_time:
             elapsed = round(time.time() - start_time, 2)
+
+        # Print debug sobre per_module e executed_by
+        for mod, v in per_module.items():
+            executed_by = v.get("executed_by", None)
+            print(f"[DEBUG][get_evaluation_status] module={mod} executed_by={executed_by} passed={v.get('passed', 0)} failed={v.get('failed', 0)}")
 
         return {
             "percent_passed": (passed / total * 100) if total else 0,
@@ -66,6 +75,9 @@ class TaskManager:
         return list(self.results.keys())
     
     def add_multiple_results(self, task_id, results):
+        print(f"[DEBUG][add_multiple_results] task_id={task_id} | num_results={len(results)}")
+        for idx, r in enumerate(results):
+            print(f"[DEBUG][add_multiple_results] result[{idx}] executed_by={r.get('executed_by', None)} project_id={r.get('project_id', None)} module_path={r.get('module_path', None)} passed={r.get('passed', 0)} failed={r.get('failed', 0)}")
         total = sum(r.get("total", 0) for r in results)
         passed = sum(r.get("passed", 0) for r in results)
         failed = sum(r.get("failed", 0) for r in results)
@@ -88,7 +100,9 @@ class TaskManager:
                 per_module[mod_key] = {
                     "total": r.get("total", 0),
                     "passed": r.get("passed", 0),
-                    "failed": r.get("failed", 0)
+                    "failed": r.get("failed", 0),
+                    "executed_by": r.get("executed_by", None),
+                    "project_id": proj
                 }
 
         prev = self.results.get(task_id, {})
