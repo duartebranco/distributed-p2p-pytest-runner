@@ -3,9 +3,16 @@ import time
 import requests
 import os
 import random
+import socket
+
+def log_node_info():
+    print(f"[DEBUG][NODE] Hostname: {socket.gethostname()}", flush=True)
+    print(f"[DEBUG][NODE] gethostbyname: {socket.gethostbyname(socket.gethostname())}", flush=True)
+    print(f"[DEBUG][NODE] hostname -I: {os.popen('hostname -I').read().strip()}", flush=True)
 
 class P2P:
     def __init__(self):
+        log_node_info()
         self.running = True
         self.node_address = os.getenv('NODE_ADDRESS', '')
         self.known_seeds = os.getenv('SEED_NODES', '').split(',') if os.getenv('SEED_NODES') else []
