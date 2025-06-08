@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 # install git + unzip for zip_handler & git clones
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git unzip \
+ && apt-get install -y --no-install-recommends git unzip lsof \
  && rm -rf /var/lib/apt/lists/*
 
 # avoid buffering Python output

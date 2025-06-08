@@ -2,7 +2,7 @@
 
 #### /evaluation POST GIT (should return id)
 
-curl -X POST http://127.0.0.1:7000/evaluation \
+curl -X POST http://192.168.0.2:7000/evaluation \
  -H 'Content-Type: application/json' \
  -d '{
     "auth_token":"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",
@@ -14,7 +14,7 @@ curl -X POST http://127.0.0.1:7000/evaluation \
     ]
  }'
 
-curl -X POST http://127.0.0.1:7000/evaluation \
+curl -X POST http://192.168.0.2:7000/evaluation \
  -H 'Content-Type: application/json' \
  -d '{
     "auth_token":"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",
@@ -23,7 +23,7 @@ curl -X POST http://127.0.0.1:7000/evaluation \
     ]
  }'
 
-curl -X POST http://127.0.0.1:7000/evaluation \
+curl -X POST http://192.168.0.2:7000/evaluation \
  -H 'Content-Type: application/json' \
  -d '{
     "auth_token":"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",
@@ -32,7 +32,7 @@ curl -X POST http://127.0.0.1:7000/evaluation \
     ]
  }'
 
-curl -X POST http://127.0.0.1:7000/evaluation \
+curl -X POST http://192.168.0.2:7000/evaluation \
  -H 'Content-Type: application/json' \
  -d '{
     "auth_token":"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",
@@ -41,7 +41,7 @@ curl -X POST http://127.0.0.1:7000/evaluation \
     ]
  }'
 
-curl -X POST http://127.0.0.1:7000/evaluation \
+curl -X POST http://192.168.0.2:7000/evaluation \
  -H 'Content-Type: application/json' \
  -d '{
     "auth_token":"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",
@@ -52,24 +52,24 @@ curl -X POST http://127.0.0.1:7000/evaluation \
 
 #### /evaluation POST ZIP (should return id) (not done yet)
 
-curl -X POST http://127.0.0.1:7000/evaluation \
+curl -X POST http://192.168.0.2:7000/evaluation \
  -H 'Content-Type: multipart/form-data' \
  -F "file=@/home/duarte/Transferências/projects.zip"
 
 #### /evaluation GET (list all evaluations)
 
-curl -X GET http://127.0.0.1:7000/evaluation
+curl -X GET http://192.168.0.2:7000/evaluation
 
 #### /evaluation/{id} GET (get status of a specific evaluation)
 
-curl -X GET http://127.0.0.1:7000/evaluation/e30acd59-4017-402c-9937-322dbb189fb8{id}
+curl -X GET http://192.168.0.2:7000/evaluation/{id}
 
 #### /stats GET (not done yet)
 
-curl -X GET http://127.0.0.1:7000/stats
+curl -X GET http://192.168.0.2:7000/stats
 
 #### /network GET (p2p network info)
 
-curl -X GET http://127.0.0.1:7000/network
+curl -X GET http://192.168.0.2:7000/network
 
 for i in {1..3}; do docker-compose logs node$i > node${i}_logs.txt; done

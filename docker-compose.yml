@@ -3,20 +3,29 @@ services:
   node1:
     build: .
     image: cd_node
-    network_mode: host
     environment:
       - PORT=7000
+      - SEED_NODES=${HOST_IP}:7000
+      - HOST_IP=${HOST_IP}
+    ports:
+      - "7000:7000"
 
   node2:
     build: .
     image: cd_node
-    network_mode: host
     environment:
       - PORT=7001
+      - SEED_NODES=${HOST_IP}:7000
+      - HOST_IP=${HOST_IP}
+    ports:
+      - "7001:7001"
 
   node3:
     build: .
     image: cd_node
-    network_mode: host
     environment:
       - PORT=7002
+      - SEED_NODES=${HOST_IP}:7000
+      - HOST_IP=${HOST_IP}
+    ports:
+      - "7002:7002"

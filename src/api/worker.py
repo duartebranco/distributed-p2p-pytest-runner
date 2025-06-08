@@ -2,12 +2,30 @@ from flask import Blueprint, request, jsonify
 import base64, os, tempfile, threading, time
 from utils.zip_handler import extract_zip
 from utils.pytest_runner import run_pytest_on_project
+import subprocess
+import datetime
 
 worker_bp = Blueprint('worker', __name__)
 
 # in-memory buffers
 worker_tasks = {}    # evaluation_id -> list of mods ready to run
 worker_results = {}  # evaluation_id -> list of pytest results
+
+def print_port_occupation(port):
+    try:
+        result = subprocess.run(
+            ["lsof", "-i", f":{port}"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        if result.stdout.strip():
+            print(f"[DEBUG][PORT] Port {port} is occupied:\n{result.stdout}")
+        else:
+            print(f"[DEBUG][PORT] Port {port} is free.")
+    except Exception as e:
+        print(f"[DEBUG][PORT] Could not check port {port}: {e}")
+
 
 def _process_stored_modules(evaluation_id):
     mods = worker_tasks.pop(evaluation_id, [])
@@ -18,10 +36,11 @@ def _process_stored_modules(evaluation_id):
     for mod in mods:
         project_path = mod["project_path"]
         module_abs = os.path.join(project_path, mod["module_path"])
-        print(f"[DEBUG][WORKER]   Running pytest for project_id={mod.get('project_id')} module_path={mod.get('module_path')}")
+        print(f"[DEBUG][WORKER][START] Running pytest for project_id={mod.get('project_id')} module_path={mod.get('module_path')}")
         r = run_pytest_on_project(project_path, module_abs)
+        print(f"[DEBUG][WORKER][END] Finished pytest for project_id={mod.get('project_id')} module_path={mod.get('module_path')}")
         r["project_id"] = mod["project_id"]
-        r["module_path"] = mod["module_path"]  # garantir que devolve o relativo
+        r["module_path"] = mod["module_path"]
         # Print do resultado detalhado
         print(f"[RESULT][WORKER] project_id={r.get('project_id')} module_path={r.get('module_path')} passed={r.get('passed')} failed={r.get('failed')} errors={r.get('errors', 0)}")
         print(f"[PYTEST][STDOUT]\n{r.get('pytest_stdout','')}")
