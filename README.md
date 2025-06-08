@@ -2,6 +2,24 @@
 
 ## Usage
 
+Please change the .env according to the machines IP and the necessity to run nodes in another machine.
+
+   ```sh
+   # Host IP is this machine's local IP address
+   # use `$ hostname -I` to find it
+   HOST_IP=192.168.0.2
+
+   # This is the seed nodes, it should always give the own's machine IP and port
+   SEED_NODES=192.168.0.2:7000
+   
+   # If you want to use more than one machine,
+   # you need to add the IP and port of the new machine
+   # like this:
+   # SEED_NODES=192.168.0.2:7000,192.168.0.7:7000
+   ```
+
+For each change in the .env file, you need to restart the terminal or run `source .env` to apply the changes
+
 ### Docker
 
 Start the system with docker (main way).
@@ -9,20 +27,12 @@ Start the system with docker (main way).
 Build with docker:
 
    ```sh
+   # build for the first time
+   docker-compose build --no-cache
    # start system
    docker-compose --env-file .env up --build -d
    # stop
    docker-compose down --rmi all --volumes --remove-orphans
-   ```
-
-All the curl commands should use the host's local network ip and not the loopback's.
-Too allow more than one machine in the same LAN to communicate:
-    
-   ```sh
-    node3_1  |  * Running on http://127.0.0.1:7002
-    node3_1  |  * Running on http://192.168.0.2:7002
-    
-    curl -X GET http://192.168.0.2:7000/network
    ```
 
 ## Project Structure

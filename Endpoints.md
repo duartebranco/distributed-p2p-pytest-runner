@@ -64,7 +64,7 @@ curl -X GET http://192.168.0.2:7000/evaluation
 
 curl -X GET http://192.168.0.2:7000/evaluation/{id}
 
-#### /stats GET (not done yet)
+#### /stats GET
 
 curl -X GET http://192.168.0.2:7000/stats
 

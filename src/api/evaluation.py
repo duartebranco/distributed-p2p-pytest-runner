@@ -60,6 +60,7 @@ def distribute_and_collect(evaluation_id, auth_token, nodes, modules):
         if res:
             print(f"[DEBUG][DIST] Received {len(res)} results from {node}")
             for r in res:
+                r["executed_by"] = node
                 print(f"[DEBUG][DIST]   Result: project_id={r.get('project_id')} module_path={r.get('module_path')}")
             all_results.extend(res)
         else:
