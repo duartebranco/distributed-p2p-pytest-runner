@@ -24,6 +24,8 @@ def _process_stored_modules(evaluation_id):
         r["module_path"] = mod["module_path"]  # garantir que devolve o relativo
         # Print do resultado detalhado
         print(f"[RESULT][WORKER] project_id={r.get('project_id')} module_path={r.get('module_path')} passed={r.get('passed')} failed={r.get('failed')} errors={r.get('errors', 0)}")
+        print(f"[PYTEST][STDOUT]\n{r.get('pytest_stdout','')}")
+        print(f"[PYTEST][STDERR]\n{r.get('pytest_stderr','')}")
         results.append(r)
     print(f"[DEBUG][WORKER] Finished processing. Results to return:")
     for idx, r in enumerate(results):

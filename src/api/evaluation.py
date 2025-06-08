@@ -16,11 +16,13 @@ from utils.pytest_runner  import find_test_modules
 evaluation_bp = Blueprint('evaluation', __name__)
 task_manager   = TaskManager()
 
-def is_node_alive(node):
+def is_node_alive(node, timeout=5):
+    """
+    Verifica se um nó está vivo com timeout mais robusto
+    """
     try:
-        # Tenta um pedido rápido (timeout curto)
-        requests.get(f"http://{node}/network/peers", timeout=1)
-        return True
+        response = requests.get(f"http://{node}/network/peers", timeout=timeout)
+        return response.status_code == 200
     except Exception:
         return False
 
@@ -66,21 +68,123 @@ def distribute_and_collect(evaluation_id, auth_token, nodes, modules):
 
 @evaluation_bp.route('', methods=['POST'])
 def evaluation():
-    # ZIP‐file path (local only)
+    # ZIP file upload - DISTRIBUTED VERSION
     if 'file' in request.files:
         zip_file      = request.files['file']
         evaluation_id = str(uuid.uuid4())
         extracted     = handle_zip_upload(zip_file)
-        task_manager.add_task(evaluation_id, extracted)
-
-        projects = find_projects(extracted)
         
-        all_results = [run_pytest_on_project(p) for p in projects]
+        # Find all projects in the extracted directory
+        projects = find_projects(extracted)
+        print(f"[DEBUG][ZIP] Found {len(projects)} projects in ZIP: {projects}")
+        
+        # Check if we have nodes available for distribution
+        all_nodes = list(current_app.p2p.get_network_info().keys())
+        if all_nodes and len(projects) > 0:
+            print(f"[DEBUG][ZIP] Distributing ZIP projects to {len(all_nodes)} nodes")
+            
+            # Create modules list similar to GitHub flow
+            all_mods = []
+            for p in projects:
+                pid = os.path.basename(p)
+                zipped = zip_project_folder(p)
+                test_modules = find_test_modules(p)
+                print(f"[DEBUG][ZIP] Project {pid}: found {len(test_modules)} test modules")
+                
+                for m in test_modules:
+                    all_mods.append({
+                        "project_path": p,
+                        "module_path": os.path.relpath(m, p),
+                        "project_zip": zipped,
+                        "project_id": pid
+                    })
+            
+            print(f"[DEBUG][ZIP] Total modules to distribute: {len(all_mods)}")
+            
+            # If no test modules found, fall back to local execution
+            if not all_mods:
+                print("[DEBUG][ZIP] No test modules found, falling back to local execution")
+                task_manager.add_task(evaluation_id, extracted)
+                all_results = [run_pytest_on_project(p) for p in projects]
+                task_manager.add_multiple_results(evaluation_id, all_results)
+                return jsonify({"id": evaluation_id}), 201
+            
+            # Distributed execution logic (same as GitHub)
+            tested_modules = set()
+            all_results = []
+            t0 = time.time()
 
-        task_manager.add_multiple_results(evaluation_id, all_results)
+            ronda = 0
+            while True:
+                ronda += 1
+                missing_mods = [
+                    m for m in all_mods
+                    if (m["project_id"], m["module_path"], m["project_zip"]) not in tested_modules
+                ]
+                print(f"\n[DEBUG][ZIP][RONDA {ronda}] Módulos em falta ({len(missing_mods)}):")
+                for m in missing_mods:
+                    print(f"  [MISSING] project_id={m['project_id']} module_path={m['module_path']}")
 
-        return jsonify({"id": evaluation_id}), 201
+                if not missing_mods:
+                    print(f"[DEBUG][ZIP][RONDA {ronda}] Todos os módulos testados!")
+                    break
 
+                alive_nodes = [n for n in all_nodes if is_node_alive(n)]
+                print(f"[DEBUG][ZIP][RONDA {ronda}] Alive nodes: {alive_nodes}")
+                if not alive_nodes:
+                    print("[ERROR][ZIP] No alive nodes available for distribution!")
+                    break
+
+                results = distribute_and_collect(evaluation_id, None, alive_nodes, missing_mods)
+                print(f"[DEBUG][ZIP][RONDA {ronda}] RECEBIDO dos nodes ({len(results)} resultados):")
+                for r in results:
+                    pid = r.get("project_id") or r.get("project_path")
+                    mod = r.get("module_path")
+                    print(f"  [RECV] project_id={pid} module_path={mod}")
+
+                all_results.extend(results)
+                for r in results:
+                    pid = r.get("project_id") or r.get("project_path")
+                    mod = r.get("module_path")
+                    # Find the correct ziphash in all_mods
+                    ziphash = None
+                    for m in all_mods:
+                        if m["project_id"] == pid and m["module_path"] == mod:
+                            ziphash = m["project_zip"]
+                            break
+                    if pid and mod and ziphash:
+                        tested_modules.add((pid, mod, ziphash))
+                        print(f"  [MARK TESTED] project_id={pid} module_path={mod}")
+
+            print(f"[DEBUG][ZIP][FINAL] Aggregating results. Total results: {len(all_results)}")
+            task_manager.add_multiple_results(evaluation_id, all_results)
+            elapsed = round(time.time() - t0, 2)
+            print(f"[DEBUG][ZIP][FINAL] Elapsed seconds: {elapsed}")
+            task_manager.set_elapsed_seconds(evaluation_id, elapsed)
+
+            # Sync results to other nodes
+            for node in all_nodes:
+                if node != current_app.p2p.node_address:
+                    try:
+                        print(f"[DEBUG][ZIP][SYNC] Syncing results to {node}")
+                        requests.post(
+                            f"http://{node}/evaluation/sync_result/{evaluation_id}",
+                            json={"results": all_results, "elapsed_seconds": elapsed},
+                            timeout=5
+                        )
+                    except Exception as e:
+                        print(f"[WARN][ZIP][SYNC] Failed to sync to {node}: {e}")
+
+            return jsonify({"id": evaluation_id}), 201
+        
+        else:
+            # Fallback to local execution if no nodes or no projects
+            print("[DEBUG][ZIP] No nodes available or no projects found, executing locally")
+            task_manager.add_task(evaluation_id, extracted)
+            all_results = [run_pytest_on_project(p) for p in projects]
+            task_manager.add_multiple_results(evaluation_id, all_results)
+            return jsonify({"id": evaluation_id}), 201
+        
     # GitHub list
     elif request.is_json:
         data          = request.get_json()

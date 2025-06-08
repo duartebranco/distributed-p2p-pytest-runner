@@ -78,7 +78,8 @@ def run_pytest_on_project(project_path, module_path=None):
             module_path if module_path else project_path,
             "--maxfail=100",
             "--disable-warnings",
-            "-q"
+            "-q",
+            "-v"
         ]
         process = subprocess.run(
             pytest_command,
@@ -88,8 +89,12 @@ def run_pytest_on_project(project_path, module_path=None):
             check=False
         )
         retcode = process.returncode
+        result["pytest_stdout"] = process.stdout
+        result["pytest_stderr"] = process.stderr
     except Exception as e:
         retcode = -1
+        result["pytest_stdout"] = ""
+        result["pytest_stderr"] = str(e)
 
     if retcode == pytest.ExitCode.OK:
         result["total"] = 1

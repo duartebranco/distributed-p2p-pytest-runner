@@ -10,7 +10,7 @@ Build with docker:
 
    ```sh
    # start system
-   docker-compose --env-file .env up --build
+   docker-compose --env-file .env up --build -d
    # stop
    docker-compose down --rmi all --volumes --remove-orphans
    ```
