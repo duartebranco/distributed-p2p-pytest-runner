@@ -1,4 +1,4 @@
-# Protocolo usado neste projeto
+# Protocol used in this project
 
 ## 
 - [evaluation](#evaluation)
@@ -19,34 +19,34 @@
 
 ## /evaluation
 
-Endpoint usado para realizar pedidos e consultar avaliações de projetos. 
+Endpoint used to make requests and query project evaluations. 
 
 ### POST /evaluation
-**Objetivo**: Começa uma nova avaliação e devolve o id da avaliação em questão, os projetos passados podem ser através de http passando o respetivo token de acesso ou através de um ficheiro zip com os projetos. Em seguida é feita a redistribuição das tarefas.
+**Objective**: Starts a new evaluation and returns the evaluation ID. Projects can be passed via HTTP using the respective access token or through a zip file with the projects. Task redistribution is then performed.
 
-**Resposta**:
-- **201 Pedido realizado com sucesso**:
+**Response**:
+- **201 Request successful**:
   ```json
   {"id": "uuid"} 
   ```
-- **400 Pedido Inválido**:
+- **400 Invalid request**:
   ```json
   {"error": "Invalid request"}
   ```
 
 ### GET /evaluation
-**Objetivo**: Devolve ao cliente a listagem de todos os ids das avaliações realizadas
+**Objective**: Returns to the client a list of all evaluation IDs performed
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {"evaluations": ["uuid", ...]}
   ```
 
 ### GET /evaluation/<id\>
-**Objetivo**: Devolve ao cliente informações específicas de uma avaliação
+**Objective**: Returns to the client specific information about an evaluation
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {
@@ -63,15 +63,15 @@ Endpoint usado para realizar pedidos e consultar avaliações de projetos.
     "elapsed_seconds": float 
   }
   ```
-- **404 Não existe**:
+- **404 Not found**:
   ```json
   {"error": "not found"}
   ```
 
 ### POST /evaluation/sync_result/<id\>
-**Objetivo**: Endpoint auxiliar com uso só para os nodes com o objetivo de sincronizar os resultados e o temporizador para a consistência dos resultados das avaliações
+**Objective**: Auxiliary endpoint for use only by nodes with the purpose of synchronizing results and timer for evaluation result consistency
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {"status": "ok"}
@@ -79,25 +79,25 @@ Endpoint usado para realizar pedidos e consultar avaliações de projetos.
 
 ## /worker
 
-Endpoint usado para associar tarefas aos nodes e receber os resultados do processamento das tarefas
+Endpoint used to assign tasks to nodes and receive task processing results
 
 ### POST /task
-**Objetivo**: São enviados vários módulos de teste ao um node para correr o pytest sobre estes, os módulos são guardados em seguida numa diretória temporária.
+**Objective**: Multiple test modules are sent to a node to run pytest on them, the modules are then stored in a temporary directory.
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {"status": "ack"}
   ```
-- **400 Pedido Inválido**:
+- **400 Invalid request**:
   ```json
   {"error": "missing evaluation_id"}
   ```
 
 ### GET /task/results/<evaluation_id\>
-**Objetivo**: Retorna os resultados dos testes corridos sobre os módulos anteriormente fornecidos, se a avaliação ainda não está nos resultados do node espera até aparecer nos resultados
+**Objective**: Returns the results of tests run on previously provided modules, if the evaluation is not yet in the node's results it waits until it appears in the results
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   [
@@ -117,13 +117,13 @@ Endpoint usado para associar tarefas aos nodes e receber os resultados do proces
 
 ## /stats 
 
-Endpoint usado para aceder as estatísticas desde do início do sistema e também de um node específico
+Endpoint used to access statistics from system startup and also from a specific node
 
 ### GET /stats
-**Objetivo**: Retorna as estatísticas globais do sistema
+**Objective**: Returns global system statistics
 
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {
@@ -148,9 +148,9 @@ Endpoint usado para aceder as estatísticas desde do início do sistema e també
   ```
 
 ### GET /stats/node_stats
-**Objetivo**: Endpoint interno auxiliar para aceder as estatísticas de um node
+**Objective**: Internal auxiliary endpoint to access a node's statistics
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {
@@ -165,12 +165,12 @@ Endpoint usado para aceder as estatísticas desde do início do sistema e també
 
 ## /network
 
-Endpoint focado em obter informações da rede P2P
+Endpoint focused on obtaining P2P network information
 
 ### GET /network
-**Objetivo**: Retorna os nodes conhecidos por cada node dentro da rede P2P
+**Objective**: Returns the nodes known by each node within the P2P network
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {
@@ -181,18 +181,18 @@ Endpoint focado em obter informações da rede P2P
 
 
 ### GET /network/peers
-**Objetivo**: Retorna os nodes conhecidos por um node específico, uso interno.
+**Objective**: Returns the nodes known by a specific node, internal use.
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {"peers": ["address", ...]}
   ```
 
 ### POST /network/gossip
-**Objetivo**: Usado para descoberta de nodes na rede, uso interno.
+**Objective**: Used for node discovery in the network, internal use.
 
-**Resposta**:
+**Response**:
 - **200 OK**:
   ```json
   {"status": "ok"}
