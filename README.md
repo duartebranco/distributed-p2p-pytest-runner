@@ -108,13 +108,13 @@ The project is organized as follows:
 ```
 distributed-testing-system
 ├── docs
-│   ├── reports           # Contains this project's report and the assignment given to students
-│   ├── protocols         # Contains the API protocols used in the project
+│   ├── reports            # Contains this project's report and the assignment given to students
+│   ├── protocols          # Contains the API protocols used in the project
 ├── src
-│   ├── api               # Contains the API endpoints for evaluation, stats, and network and new ones
-│   ├── core              # Core functionality including node management and task distribution
-│   ├── utils             # Utility functions for handling ZIP files and GitHub interactions
-│   └── main.py           # Entry point for running the server and CLI commands
+│   ├── api                # Contains the API endpoints for evaluation, stats, and network and new ones
+│   ├── core               # Core functionality including node management and task distribution
+│   ├── utils              # Utility functions for handling ZIP files and GitHub interactions
+│   └── main.py            # Entry point for running the server and CLI commands
 ├── .env                   # Environment variables for Docker and manual runs
 ├── Dockerfile             # Dockerfile for building the application image
 ├── docker-compose.yml     # Configuration for running the application in Docker
