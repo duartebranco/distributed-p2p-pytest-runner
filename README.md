@@ -105,12 +105,14 @@ If you need to view all of the API endpoints, please look at the `docs/protocols
 
 For detailed information about the project:
 
-- **[API Protocol](docs/protocolo.md)** - Complete API reference with all endpoints, request/response formats, and status codes
+- **[API Protocol](docs/protocols/protocol.md)** - Complete API reference with all endpoints, request/response formats, and status codes
 - **[Project Reports](docs/reports/)** - Contains project documentation and assignment specifications
 - **[Source Code](src/)** - Well-organized codebase with clear separation of concerns:
   - `api/` - REST API endpoints
   - `core/` - Core business logic and distributed system components
   - `utils/` - Helper functions for GitHub and file operations
+
+Some of the documentation is in Portuguese (my native language).
 
 ## Project Structure
 
