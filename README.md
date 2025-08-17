@@ -6,12 +6,12 @@ A lightweight, distributed test runner for Python projects. It exposes an HTTP A
 
 - P2P task distribution with simple gossip-based peer discovery.
 - Workers create a per-project virtual environment and run pytest per test module.
-- Aggregated metrics: totals, per-project and per-module breakdowns, elapsed time, and a simple nota_final.
+- Aggregated metrics: totals, per-project and per-module breakdowns, elapsed time, and a simple nota_final (final_grade).
 - Network and stats endpoints for observability.
 
 ## Usage
 
-### 1) Please change the `.env` according to your machine's IP and add the IPs of the other machines in which you want to run the system.
+### 1) Update the .env file with your machine's IP, and add the IPs of other machines where you might want to run the system.
 
 Use `$ hostname -I` to find your own machine's IP address.
 
@@ -20,13 +20,7 @@ Use `$ hostname -I` to find your own machine's IP address.
 HOST_IP=192.168.0.2
 ```
 
-Now, add the Seed nodes, you should always give your own machine's IP and port first, and then, if you want to add more machines, you need to add the IP and port of the new machine.
-
-```sh
-SEED_NODES=192.168.0.2:7000
-```
-
-If you want the system to have more than one machine, you need to add the IP and port of the new machine(s).
+Now, add the seed nodes. Always specify your own machine's IP and port first, then add the IP and port of any additional machines if you want to use more than one machine.
 
 ```sh
 SEED_NODES=192.168.0.2:7000,192.168.0.7:7000
@@ -34,14 +28,14 @@ SEED_NODES=192.168.0.2:7000,192.168.0.7:7000
 
 For each future change in the `.env` file, you need to restart the terminal or run `source .env` to apply the changes.
 
-### 2) Build and start the system with docker (main way).
+### 2) Build and start the system with Docker.
 
 ```sh
-# build for the first time
+# build the imagefor the first time
 docker-compose build --no-cache
 # start the system
 docker-compose --env-file .env up --build -d
-# stop
+# stop and clean up
 docker-compose down --rmi all --volumes --remove-orphans
 ```
 
@@ -53,7 +47,9 @@ curl -s http://192.168.0.2:7000/network
 
 ### 4) Submit an evaluation.
 
-You can submit an evaluation by sending a POST request to the `/evaluation` endpoint with a JSON payload containing, either,  the list ofGitHub project's URLs and the authentication token, or by uploading a ZIP file containing the projects.
+You can submit an evaluation by sending a POST request to the `/evaluation` endpoint with a JSON payload containing either a list of GitHub project URLs and the [authentication token](https://github.com/settings/personal-access-tokens), or by uploading a ZIP file containing the projects.
+
+Remember that
 
 ```sh
 # GitHub URLs
@@ -78,7 +74,7 @@ curl -X POST http://192.168.0.2:7000/evaluation \
 ### 5) Check status and stats.
 
 ```sh
-# List evaluations with results:
+# List all evaluations with results:
 curl http://192.168.0.2:7000/evaluation
 # Evaluation details:
 curl http://192.168.0.2:7000/evaluation/<id>
@@ -90,13 +86,13 @@ If you need to view all of the API endpoints, please look at the `docs/protocols
 
 ## How does this project work?
 
-- Nodes start with NODE_ADDRESS and SEED_NODES (set by `.env`).
+- Nodes are initialized with `NODE_ADDRESS` and `SEED_NODES` (set by `.env`).
 - Simple gossip spreads peer info via POST /network/gossip.
 - Evaluations:
   - Projects are cloned (GitHub) or unpacked (ZIP).
-  - Test modules (tests/test_*.py) are split and shipped to nodes with POST /task.
+  - Test modules (`tests/test_*.py`) are split and distributed to nodes using `POST /task`.
   - Nodes create a venv inside each project folder, run pytest per module, and expose results via GET /task/results/<evaluation_id>.
-  - The initiator aggregates results and syncs them to peers with POST /evaluation/sync_result/<id>.
+  - The initiating node aggregates results and syncs them with peers using `POST /evaluation/sync_result/<id>`.
 - Stats:
   - Global stats are aggregated locally.
   - Per-node stats are computed from module-level execution provenance and fetched from peers.
@@ -112,7 +108,7 @@ For detailed information about the project:
   - `core/` - Core business logic and distributed system components
   - `utils/` - Helper functions for GitHub and file operations
 
-Some of the documentation is in Portuguese (my native language).
+Some documentation is in Portuguese (my native language).
 
 ## Project Structure
 
