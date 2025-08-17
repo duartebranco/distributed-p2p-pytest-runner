@@ -11,7 +11,7 @@ A lightweight, distributed test runner for Python projects. It exposes an HTTP A
 
 ## Usage
 
-1) Please change the `.env` according to your machine's IP and add the IPs of the other machines in which you want to run the system.
+### 1) Please change the `.env` according to your machine's IP and add the IPs of the other machines in which you want to run the system.
 
 Use `$ hostname -I` to find your own machine's IP address.
 
@@ -34,7 +34,7 @@ SEED_NODES=192.168.0.2:7000,192.168.0.7:7000
 
 For each future change in the `.env` file, you need to restart the terminal or run `source .env` to apply the changes.
 
-2) Build and start the system with docker (main way).
+### 2) Build and start the system with docker (main way).
 
 ```sh
 # build for the first time
@@ -45,13 +45,13 @@ docker-compose --env-file .env up --build -d
 docker-compose down --rmi all --volumes --remove-orphans
 ```
 
-3) Verify the network from any node.
+### 3) Verify the network from any node.
 
 ```sh
 curl -s http://192.168.0.2:7000/network
 ```
 
-4) Submit an evaluation.
+### 4) Submit an evaluation.
 
 You can submit an evaluation by sending a POST request to the `/evaluation` endpoint with a JSON payload containing, either,  the list ofGitHub project's URLs and the authentication token, or by uploading a ZIP file containing the projects.
 
@@ -75,7 +75,7 @@ curl -X POST http://192.168.0.2:7000/evaluation \
   -F "file=@/path/to/projects.zip"
 ```
 
-5) Check status and stats.
+### 5) Check status and stats.
 
 ```sh
 # List evaluations with results:
