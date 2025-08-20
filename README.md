@@ -131,3 +131,12 @@ distributed-testing-system
 ├── requirements.txt       # Project dependencies
 └── README.md              # Overview and setup instructions for the project
 ```
+
+## About This Project
+
+*This project was developed as a final project for the Distributed Systems course at the University of Aveiro.*
+
+### Authors
+
+- [Duarte Branco](https://github.com/duartebranco)
+- [Ivan Horoshko](https://github.com/ivan-horoshko)
